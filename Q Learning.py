@@ -13,5 +13,8 @@ print(env.observation_space.low)
 # Render
 while True:
     action=2
-    env.step(action)
+    #env.step(action)
+
+    new_state, reward, done, _=env.step(action)
+    print("new state={},reward={}",format(new_state,reward))
     env.render()
