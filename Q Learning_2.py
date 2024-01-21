@@ -9,14 +9,17 @@ c_discount_value=0.9
 q_table_size=[20,20]
 q_table_segment_size=(env.observation_space.high-env.observation_space.low)/q_table_size
 def convert_state(real_state):
-    q_state=(real_state-env.observation_space.low) // q_table_size
-    return tuple(q_state.astype(np.int))
+
+    q_state = (real_state[0] - env.observation_space.low) // q_table_segment_size
+    print("real_state[0]= ",real_state[0])
+    return tuple(q_state.astype(int))
 
 q_table=np.random.uniform(low=-2,high=0,size=(q_table_size+[env.action_space.n]))
 c_no_of_eps=10000
 c_show_each=1000
 max_ep_reward=-999
 max_ep_action_list=[]
+max_start_state=None
 
 for ep in range(c_no_of_eps):
     print("Eps= ",ep)
@@ -58,3 +61,13 @@ for ep in range(c_no_of_eps):
 # Print Results
 print("Max reward= ",max_ep_reward)
 print("Max action= ",max_ep_action_list)
+
+env.reset()
+env.state=max_start_state
+for action in max_ep_action_list:
+    env.step(action)
+    env.render()
+done=False
+while not done:
+    env.step(0)
+    env.render()
