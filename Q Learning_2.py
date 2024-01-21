@@ -8,10 +8,12 @@ c_learning_rate=0.1
 c_discount_value=0.9
 q_table_size=[20,20]
 q_table_segment_size=(env.observation_space.high-env.observation_space.low)/q_table_size
+
+
 def convert_state(real_state):
 
     q_state = (real_state[0] - env.observation_space.low) // q_table_segment_size
-    print("real_state[0]= ",real_state[0])
+    print("real_state[0]x= ",real_state[0])
     return tuple(q_state.astype(int))
 
 q_table=np.random.uniform(low=-2,high=0,size=(q_table_size+[env.action_space.n]))
@@ -20,6 +22,11 @@ c_show_each=1000
 max_ep_reward=-999
 max_ep_action_list=[]
 max_start_state=None
+
+v_epsilon = 0.9
+c_start_ep_epsilon_decay = 1
+c_end_ep_epsilon_decay = c_no_of_eps // 2
+v_epsilon_decay = v_epsilon / (c_end_ep_epsilon_decay - c_start_ep_epsilon_decay)
 
 for ep in range(c_no_of_eps):
     print("Eps= ",ep)
@@ -37,7 +44,10 @@ for ep in range(c_no_of_eps):
         action=np.argmax(q_table[current_state])
         action_list.append(action)
         # Take next action
-        next_real_state,reward,done, _ =env.step(action=action)
+        # print("env.step(action=action)= ", env.step(action=action)[0])
+        next_real_state=env.step(action=action)[0]
+        reward =env.step(action=action)[1]
+        done=env.step(action=action)[2]
         ep_reward+=reward
         if show_now:
             env.render()
@@ -58,6 +68,8 @@ for ep in range(c_no_of_eps):
                 new_q_value=(1-c_learning_rate)*current_q_value+c_learning_rate*(reward+c_discount_value*np.max(q_table[next_state]))
                 q_table[current_state+(action,)]=new_q_value
                 current_state=next_state
+    if c_end_ep_epsilon_decay >= ep > c_start_ep_epsilon_decay:
+        v_epsilon = v_epsilon - v_epsilon_decay
 # Print Results
 print("Max reward= ",max_ep_reward)
 print("Max action= ",max_ep_action_list)
